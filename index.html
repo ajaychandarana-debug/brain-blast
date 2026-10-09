@@ -34,21 +34,26 @@
   .top { display: flex; align-items: center; gap: 12px; color: #fff; font-weight: bold; font-size: 1.1rem; }
   .bar { flex: 1; height: 14px; background: rgba(255,255,255,.3); border-radius: 7px; overflow: hidden; }
   .bar div { height: 100%; width: 0; background: #ffd400; transition: width .3s; }
+  .card-head { display: flex; align-items: center; gap: 10px; }
   .tag { display: inline-block; background: #efeaff; color: #6c4cf5; border-radius: 99px; padding: 4px 12px; font-size: .9rem; font-weight: bold; }
-  .q { font-size: 1.5rem; font-weight: bold; text-align: center; margin: 8px 0 0; }
+  .timer { flex: 1; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
+  .timer div { height: 100%; width: 100%; background: #22c55e; }
+  .timer div.low { background: #ef4444; }
+  .secs { font-weight: bold; color: #6c4cf5; min-width: 2.2em; text-align: right; }
+  .q { font-size: 1.4rem; font-weight: bold; text-align: center; margin: 8px 0 0; }
 
   .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .ans {
-    border: none; border-radius: 16px; font: inherit; font-size: 1.3rem; font-weight: bold;
-    padding: 20px 8px; background: #fff; color: #333; box-shadow: 0 6px 0 rgba(0,0,0,.15); cursor: pointer;
+    border: none; border-radius: 16px; font: inherit; font-size: 1.2rem; font-weight: bold;
+    padding: 18px 8px; background: #fff; color: #333; box-shadow: 0 6px 0 rgba(0,0,0,.15); cursor: pointer;
   }
   .ans.right { background: #22c55e; color: #fff; }
   .ans.wrong { background: #ef4444; color: #fff; }
 
   .slots, .tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
   .slot, .tile {
-    width: min(52px, calc((100vw - 120px) / 6)); height: min(60px, calc((100vw - 120px) / 5.2));
-    border-radius: 12px; font-size: min(1.8rem, 8vw); font-weight: bold;
+    width: min(48px, calc((100vw - 120px) / 6)); height: min(56px, calc((100vw - 120px) / 5.2));
+    border-radius: 12px; font-size: min(1.7rem, 8vw); font-weight: bold;
     display: flex; align-items: center; justify-content: center; text-transform: uppercase;
   }
   .slot { background: #f1f1f6; border: 3px dashed #c9c3e8; color: #6c4cf5; }
@@ -72,8 +77,8 @@
   <div class="screen on" id="start">
     <h1>🧠 Brain Blast!</h1>
     <p class="sub">Quiz · Spelling · Maths</p>
-    <div class="big-emoji">🚀</div>
-    <p class="sub">10 questions. Get a ⭐ for every right answer!</p>
+    <div class="big-emoji">🔥</div>
+    <p class="sub">10 tough questions, and the clock is ticking ⏱️<br>Get a ⭐ for every right answer!</p>
     <div style="flex:1"></div>
     <div class="best" id="bestStart"></div>
     <button class="btn" id="playBtn">▶ Play</button>
@@ -107,78 +112,114 @@
 </div>
 <script>
 const TOTAL = 10;
+const TIME = { quiz: 15, maths: 15, spell: 30 }; // seconds per question
 
 const QUIZ = [
-  ["🕷️", "How many legs does a spider have?", "8", ["6", "10", "4"]],
-  ["🐙", "How many arms does an octopus have?", "8", ["6", "10", "12"]],
-  ["🌈", "How many colours are in a rainbow?", "7", ["5", "6", "8"]],
-  ["🐋", "What is the biggest animal ever?", "Blue whale", ["Elephant", "Giraffe", "Shark"]],
-  ["🦒", "Which animal has the longest neck?", "Giraffe", ["Horse", "Camel", "Zebra"]],
-  ["🌍", "Which planet do we live on?", "Earth", ["Mars", "Jupiter", "Venus"]],
-  ["☀️", "What is the Sun?", "A star", ["A planet", "A moon", "A cloud"]],
-  ["🐧", "Which bird can't fly but is great at swimming?", "Penguin", ["Eagle", "Parrot", "Owl"]],
-  ["🧊", "What is ice made of?", "Water", ["Glass", "Sugar", "Salt"]],
-  ["🦘", "Which country do kangaroos come from?", "Australia", ["France", "Canada", "Egypt"]],
-  ["🐝", "What do bees make?", "Honey", ["Milk", "Jam", "Butter"]],
-  ["🍎", "Which of these is a fruit?", "Apple", ["Carrot", "Potato", "Onion"]],
-  ["📅", "How many days are in a week?", "7", ["5", "6", "10"]],
-  ["🗓️", "How many months are in a year?", "12", ["10", "11", "13"]],
-  ["🐸", "A baby frog is called a…", "Tadpole", ["Kitten", "Cub", "Calf"]],
-  ["🦁", "A baby lion is called a…", "Cub", ["Puppy", "Foal", "Chick"]],
-  ["🪐", "Which is the biggest planet?", "Jupiter", ["Earth", "Mars", "Mercury"]],
-  ["🔺", "How many sides does a triangle have?", "3", ["4", "5", "6"]],
-  ["⬛", "How many sides does a square have?", "4", ["3", "5", "6"]],
-  ["👑", "What is the capital city of England?", "London", ["Paris", "Rome", "Madrid"]],
-  ["🖐️", "How many fingers are on two hands?", "10", ["8", "12", "5"]],
-  ["🧲", "What will a magnet stick to?", "Iron", ["Wood", "Plastic", "Glass"]],
-  ["🌱", "What do plants need from the Sun?", "Light", ["Sand", "Milk", "Noise"]],
-  ["🦇", "Which animal sleeps upside down?", "Bat", ["Dog", "Fish", "Cat"]],
-  ["🌊", "Which is the biggest ocean?", "Pacific", ["Atlantic", "Indian", "Arctic"]],
-  ["❄️", "Water turns to ice at…", "0°C", ["10°C", "50°C", "100°C"]],
-  ["🦕", "When did dinosaurs live?", "Millions of years ago", ["Last year", "100 years ago", "Today"]],
-  ["🐌", "Which animal carries its home on its back?", "Snail", ["Dog", "Fish", "Bird"]],
-  ["🥚", "Which of these animals lays eggs?", "Chicken", ["Cow", "Dog", "Horse"]],
-  ["⚽", "How many players does a football team have on the pitch?", "11", ["9", "10", "12"]],
+  ["🦴", "How many bones are in an adult human body?", "206", ["106", "186", "306"]],
+  ["🌡️", "At what temperature does water boil?", "100°C", ["80°C", "150°C", "212°C"]],
+  ["☀️", "Which planet is closest to the Sun?", "Mercury", ["Venus", "Mars", "Earth"]],
+  ["🌍", "How many continents are there?", "7", ["5", "6", "8"]],
+  ["🏔️", "What is the tallest mountain in the world?", "Everest", ["K2", "Kilimanjaro", "Ben Nevis"]],
+  ["🏞️", "What is the longest river in the UK?", "Severn", ["Thames", "Trent", "Mersey"]],
+  ["🐳", "What kind of animal is a whale?", "Mammal", ["Fish", "Reptile", "Amphibian"]],
+  ["🦈", "What is a shark's skeleton made of?", "Cartilage", ["Bone", "Shell", "Scales"]],
+  ["🌿", "Which gas do plants take in to make food?", "Carbon dioxide", ["Oxygen", "Helium", "Hydrogen"]],
+  ["💎", "What is the hardest natural material?", "Diamond", ["Gold", "Iron", "Granite"]],
+  ["🧱", "Which Roman emperor built a wall across northern England?", "Hadrian", ["Julius Caesar", "Nero", "Augustus"]],
+  ["👑", "Who was the UK's monarch before King Charles III?", "Elizabeth II", ["Victoria", "George VI", "Elizabeth I"]],
+  ["🔺", "In which country are the Great Pyramids of Giza?", "Egypt", ["Mexico", "Greece", "India"]],
+  ["⏱️", "How many seconds are in an hour?", "3600", ["360", "600", "6000"]],
+  ["📐", "How many degrees are in a right angle?", "90", ["45", "100", "180"]],
+  ["🔺", "The angles in a triangle add up to…", "180°", ["90°", "270°", "360°"]],
+  ["🔷", "What do you call a shape with 6 sides?", "Hexagon", ["Pentagon", "Octagon", "Heptagon"]],
+  ["🛑", "How many sides does an octagon have?", "8", ["6", "7", "10"]],
+  ["🗓️", "How many days are in a leap year?", "366", ["364", "365", "367"]],
+  ["🌙", "Who was the first person to walk on the Moon?", "Neil Armstrong", ["Buzz Aldrin", "Yuri Gagarin", "Tim Peake"]],
+  ["🧪", "What is H₂O?", "Water", ["Salt", "Air", "Gold"]],
+  ["🌡️", "Which metal is a liquid at room temperature?", "Mercury", ["Iron", "Copper", "Lead"]],
+  ["🇦🇺", "What is the capital city of Australia?", "Canberra", ["Sydney", "Melbourne", "Perth"]],
+  ["🇨🇦", "What is the capital city of Canada?", "Ottawa", ["Toronto", "Vancouver", "Montreal"]],
+  ["🏜️", "What is the largest hot desert in the world?", "Sahara", ["Gobi", "Kalahari", "Arabian"]],
+  ["🐆", "What is the fastest land animal?", "Cheetah", ["Lion", "Horse", "Greyhound"]],
+  ["🦁", "What is a group of lions called?", "Pride", ["Pack", "Herd", "School"]],
+  ["🥚", "Which bird lays the biggest eggs?", "Ostrich", ["Eagle", "Swan", "Emu"]],
+  ["🎻", "How many strings does a violin have?", "4", ["5", "6", "3"]],
+  ["🎹", "How many keys are on a standard piano?", "88", ["66", "77", "100"]],
+  ["✍️", "What is a word that describes a noun called?", "Adjective", ["Verb", "Adverb", "Pronoun"]],
+  ["🐕", "In “The dog ran quickly”, which word is the adverb?", "quickly", ["dog", "ran", "The"]],
+  ["🏛️", "What is 50 in Roman numerals?", "L", ["V", "C", "D"]],
+  ["🏛️", "What number is XIV in Roman numerals?", "14", ["9", "16", "41"]],
+  ["🧍", "What is the largest organ of the human body?", "Skin", ["Liver", "Brain", "Heart"]],
+  ["💡", "Roughly how long does sunlight take to reach Earth?", "8 minutes", ["8 seconds", "8 hours", "8 days"]],
+  ["🏴󠁧󠁢󠁳󠁣󠁴󠁿", "What is the capital city of Scotland?", "Edinburgh", ["Glasgow", "Aberdeen", "Dundee"]],
+  ["🏴󠁧󠁢󠁷󠁬󠁳󠁿", "What is the capital city of Wales?", "Cardiff", ["Swansea", "Newport", "Bangor"]],
+  ["🧊", "Which of these is NOT a state of matter?", "Energy", ["Solid", "Liquid", "Gas"]],
+  ["🦕", "Which dinosaur had three horns on its face?", "Triceratops", ["Stegosaurus", "T. rex", "Diplodocus"]],
+  ["🐊", "Which of these is a reptile?", "Crocodile", ["Frog", "Newt", "Salamander"]],
+  ["🕷️", "Spiders are not insects. What are they?", "Arachnids", ["Reptiles", "Crustaceans", "Mammals"]],
+  ["🐜", "How many legs does an insect have?", "6", ["4", "8", "10"]],
+  ["🐄", "What do we call an animal that eats only plants?", "Herbivore", ["Carnivore", "Omnivore", "Predator"]],
+  ["⚔️", "In what year was the Battle of Hastings?", "1066", ["1215", "1666", "1945"]],
+  ["🔥", "In what year was the Great Fire of London?", "1666", ["1066", "1605", "1766"]],
+  ["💍", "Which king of England had six wives?", "Henry VIII", ["Henry V", "Richard III", "Edward VI"]],
+  ["🌊", "Which ocean lies between Europe and America?", "Atlantic", ["Pacific", "Indian", "Arctic"]],
+  ["🔭", "Which is the biggest planet in our solar system?", "Jupiter", ["Saturn", "Neptune", "Uranus"]],
+  ["🧲", "What force pulls things down towards the Earth?", "Gravity", ["Friction", "Magnetism", "Electricity"]],
 ];
 
 const WORDS = [
-  ["🐱","cat"],["🐶","dog"],["🐟","fish"],["🐸","frog"],["🐦","bird"],["⭐","star"],
-  ["🌙","moon"],["☀️","sun"],["🌳","tree"],["🎂","cake"],["🍎","apple"],["🏠","house"],
-  ["🚂","train"],["📖","book"],["🚢","ship"],["🦆","duck"],["🐴","horse"],["🕐","clock"],
-  ["🍕","pizza"],["🍌","banana"],["🤖","robot"],["🚀","rocket"],["🐍","snake"],["🐭","mouse"],
-  ["🪑","chair"],["✏️","pencil"],["🐯","tiger"],["🦓","zebra"],["🐑","sheep"],["🐝","bee"],
+  ["🐘","elephant"],["🦒","giraffe"],["🐧","penguin"],["🐬","dolphin"],["🐙","octopus"],
+  ["🐊","crocodile"],["🦋","butterfly"],["☂️","umbrella"],["🌈","rainbow"],["🌋","volcano"],
+  ["✂️","scissors"],["🐿️","squirrel"],["🦘","kangaroo"],["🦔","hedgehog"],["🔭","telescope"],
+  ["🥦","broccoli"],["🍍","pineapple"],["🍓","strawberry"],["🥪","sandwich"],["💀","skeleton"],
+  ["🚑","ambulance"],["🚁","helicopter"],["🦕","dinosaur"],["🐢","tortoise"],["🍫","chocolate"],
+  ["⚡","lightning"],["🎺","trumpet"],["🎸","guitar"],["⌨️","keyboard"],["📅","calendar"],
+  ["✉️","envelope"],["🔬","microscope"],["🦟","mosquito"],["🦩","flamingo"],["🥑","avocado"],
+  ["🥒","cucumber"],["🍝","spaghetti"],["🧲","magnet"],["🏰","castle"],["🧭","compass"],
 ];
 
-const PRAISE = ["⭐ Brilliant!", "⭐ Super!", "⭐ Amazing!", "⭐ Well done!", "⭐ Fantastic!", "⭐ You got it!"];
+const PRAISE = ["⭐ Brilliant!", "⭐ Genius!", "⭐ Amazing!", "⭐ Nailed it!", "⭐ Fantastic!", "⭐ Brain power!"];
 
 const $ = id => document.getElementById(id);
 const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rand(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-let questions, idx, stars, locked;
+let questions, idx, stars, locked, timer;
 
 function makeMaths() {
-  const kind = pick(["times", "times", "add", "sub"]);
-  let text, ans, emoji;
+  const kind = pick(["times", "divide", "bigtimes", "add", "sub", "missing", "order"]);
+  let text, ans;
   if (kind === "times") {
-    const a = rand(2, 10), b = rand(1, 10);
-    text = `${a} × ${b} = ?`; ans = a * b; emoji = "✖️";
+    const a = rand(6, 12), b = rand(6, 12);
+    text = `${a} × ${b} = ?`; ans = a * b;
+  } else if (kind === "divide") {
+    const b = rand(3, 12), c = rand(3, 12);
+    text = `${b * c} ÷ ${b} = ?`; ans = c;
+  } else if (kind === "bigtimes") {
+    const a = rand(13, 99), b = rand(3, 9);
+    text = `${a} × ${b} = ?`; ans = a * b;
   } else if (kind === "add") {
-    const a = rand(5, 50), b = rand(3, 40);
-    text = `${a} + ${b} = ?`; ans = a + b; emoji = "➕";
+    const a = rand(150, 899), b = rand(150, 899);
+    text = `${a} + ${b} = ?`; ans = a + b;
+  } else if (kind === "sub") {
+    const a = rand(400, 999), b = rand(120, a - 50);
+    text = `${a} − ${b} = ?`; ans = a - b;
+  } else if (kind === "missing") {
+    const a = rand(4, 12), b = rand(4, 12);
+    text = `? × ${b} = ${a * b}`; ans = a;
   } else {
-    const a = rand(12, 60), b = rand(2, a - 2);
-    text = `${a} − ${b} = ?`; ans = a - b; emoji = "➖";
+    const a = rand(2, 20), b = rand(2, 9), c = rand(2, 9);
+    text = `${a} + ${b} × ${c} = ?`; ans = a + b * c;
   }
   const wrong = new Set();
   const offsets = shuffle([1, -1, 2, -2, 10, -10, 3, -3, 5, -5]);
+  if (kind === "order") wrong.add(String((text.match(/\d+/g).map(Number)).reduce((x, y, i) => i === 1 ? x + y : x * y))); // the "left to right" mistake
   for (const o of offsets) {
-    const v = ans + o;
-    if (v >= 0 && v !== ans) wrong.add(String(v));
-    if (wrong.size === 3) break;
+    if (wrong.size >= 3) break;
+    if (ans + o >= 0) wrong.add(String(ans + o));
   }
-  return { type: "maths", label: "Maths", emoji, text, answer: String(ans), wrong: [...wrong] };
+  return { type: "maths", label: "Maths", emoji: "🧮", text, answer: String(ans), wrong: [...wrong] };
 }
 
 function buildGame() {
@@ -194,7 +235,8 @@ function show(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id));
 }
 
-function best() { return Number(localStorage.getItem("brainBlastBest") || 0); }
+const BEST_KEY = "brainBlastBestHard";
+function best() { return Number(localStorage.getItem(BEST_KEY) || 0); }
 function showBest() {
   const b = best();
   const txt = b ? `🏆 Best score: ${b} / ${TOTAL}` : "";
@@ -205,6 +247,27 @@ function start() {
   questions = buildGame(); idx = 0; stars = 0;
   $("starCount").textContent = 0;
   show("game"); render();
+}
+
+function startTimer(secs, onTimeout) {
+  stopTimer();
+  const fill = $("timerFill"), label = $("timerSecs");
+  const end = Date.now() + secs * 1000;
+  const tick = () => {
+    const left = Math.max(0, end - Date.now());
+    fill.style.width = `${(left / (secs * 1000)) * 100}%`;
+    fill.classList.toggle("low", left < 5000);
+    label.textContent = `${Math.ceil(left / 1000)}s`;
+    if (left === 0) { stopTimer(); onTimeout(); }
+  };
+  tick();
+  timer = setInterval(tick, 100);
+}
+function stopTimer() { clearInterval(timer); timer = null; }
+
+function head(q) {
+  return `<div class="card-head"><span class="tag">${q.label}</span>
+    <div class="timer"><div id="timerFill"></div></div><span class="secs" id="timerSecs"></span></div>`;
 }
 
 function render() {
@@ -219,40 +282,36 @@ function render() {
 
   if (q.type === "spell") return renderSpell(q, card);
 
-  card.innerHTML = `
-    <span class="tag">${q.label}</span>
+  card.innerHTML = `${head(q)}
     <div class="big-emoji">${q.emoji}</div>
     <p class="q">${q.text}</p>`;
   const grid = document.createElement("div");
   grid.className = "answers"; grid.style.marginTop = "16px";
+  const showRight = () => [...grid.children].find(x => x.textContent === q.answer).classList.add("right");
   shuffle([q.answer, ...q.wrong]).forEach(opt => {
     const b = document.createElement("button");
     b.className = "ans"; b.textContent = opt;
     b.onclick = () => {
       if (locked) return; locked = true;
       if (opt === q.answer) { b.classList.add("right"); correct(); }
-      else {
-        b.classList.add("wrong");
-        [...grid.children].find(x => x.textContent === q.answer).classList.add("right");
-        miss(q.answer);
-      }
+      else { b.classList.add("wrong"); showRight(); miss(`Nearly! It was ${q.answer}`); }
     };
     grid.appendChild(b);
   });
   card.appendChild(grid);
+  startTimer(TIME[q.type], () => { locked = true; showRight(); miss(`⏰ Time's up! It was ${q.answer}`); });
 }
 
 function renderSpell(q, card) {
   const word = q.word;
-  let letters = shuffle(word.split(""));
-  for (let i = 0; i < 5 && letters.join("") === word; i++) letters = shuffle(word.split(""));
+  const decoys = Array.from({ length: 3 }, () => pick("abcdefghijklmnoprstuwy".split("")));
+  const letters = shuffle([...word.split(""), ...decoys]);
   let tries = 0;
   const placed = []; // tile index per slot
 
-  card.innerHTML = `
-    <span class="tag">${q.label}</span>
+  card.innerHTML = `${head(q)}
     <div class="big-emoji">${q.emoji}</div>
-    <p class="q">Spell the word!</p>`;
+    <p class="q">Spell the word! <small style="color:#999">(watch out for extra letters)</small></p>`;
   const slots = document.createElement("div"); slots.className = "slots"; slots.style.margin = "16px 0";
   const tiles = document.createElement("div"); tiles.className = "tiles";
   card.append(slots, tiles);
@@ -295,26 +354,31 @@ function renderSpell(q, card) {
     tries++;
     slots.classList.remove("shake"); void slots.offsetWidth; slots.classList.add("shake");
     if (tries < 2) {
-      $("feedback").textContent = "Oops! Try again 🙂";
+      $("feedback").textContent = "Oops! One more try 🙂";
       setTimeout(() => {
+        if (locked) return;
         placed.splice(0).forEach(i => tileEls[i].classList.remove("used")); draw();
       }, 500);
     } else {
       locked = true;
-      miss(word.toUpperCase());
+      miss(`Nearly! It was ${word.toUpperCase()}`);
     }
   }
+
+  startTimer(TIME.spell, () => { locked = true; miss(`⏰ Time's up! It was ${word.toUpperCase()}`); });
 }
 
 function correct() {
+  stopTimer();
   stars++;
   $("starCount").textContent = stars;
   $("feedback").textContent = pick(PRAISE);
   setTimeout(next, 1100);
 }
 
-function miss(answer) {
-  $("feedback").textContent = `Nearly! It was ${answer}`;
+function miss(message) {
+  stopTimer();
+  $("feedback").textContent = message;
   $("nextWrap").style.display = "block";
 }
 
@@ -327,7 +391,7 @@ function next() {
 
 function finish() {
   const isBest = stars > best();
-  if (isBest) localStorage.setItem("brainBlastBest", stars);
+  if (isBest) localStorage.setItem(BEST_KEY, stars);
   $("endScore").textContent = `${stars} / ${TOTAL}`;
   const row = [..."⭐".repeat(stars) + "☆".repeat(TOTAL - stars)];
   $("endStars").innerHTML = row.slice(0, 5).join("") + "<br>" + row.slice(5).join("");
